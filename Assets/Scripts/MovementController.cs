@@ -52,7 +52,7 @@ public class MovementController : MonoBehaviour
     {
         if (isDashing)
         {
-            controller.Move(transform.forward * dashSpeed * Time.deltaTime);
+            controller.Move(movement * dashSpeed * Time.deltaTime);
         }
         else
         {
@@ -105,7 +105,7 @@ public class MovementController : MonoBehaviour
                 StartCoroutine(DashCoroutine());
             }
         }
-        isGrounded = Physics.CheckSphere(transform.position - new Vector3(0, 0.9f, 0f), groundDistance, groundMask);
+        isGrounded = Physics.CheckSphere(transform.position - new Vector3(0, 1f, 0f), groundDistance, groundMask);
     }
 
     private void RotateModel()
