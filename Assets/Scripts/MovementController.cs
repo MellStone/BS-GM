@@ -1,9 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
-using UnityEngine.EventSystems;
-using UnityEngine.UIElements.Experimental;
 
 public class MovementController : MonoBehaviour
 {
@@ -13,113 +9,139 @@ public class MovementController : MonoBehaviour
     private float normalMoveSpeed;
     public float sprintMoveSpeed;
 
-    public float dashDistance = 5f; 
-    public float dashSpeed = 25f;
+    private Vector3 movement;
 
-    private bool isDashing;
-    private Vector3 dashDirection;
+    [Header("Jump")]
+    public float jumpForce = 5f;
+    public float jumpCooldown = 0.5f;
+    public int maxJumpCount = 1;
+    private int jumpCount = 0;
+    private bool isJumping = false;
+    private bool canJump = true;
 
+    [Header("Dash")]
+    public float dashDistance = 5f;
+    public float dashSpeed = 50f;
+    private bool isDashing = false;
 
-    public float GroundDrag;
+    [Header("Physics")]
+    public float gravity = -9.81f;
+    public float groundDistance = 0.1f;
+    public LayerMask groundMask;
+    private bool isGrounded = false;
+    private Vector3 velocity;
 
-    public float jumpForce;
-    public float jumpCooldown;
-    public float airMultiplayer;
-    public float crouchCooldown;
-
-    bool readyToCrouch;
-    bool readyToJump;
-    bool isCrouching;
-    bool isSprinting;
-
-    float horizontal;
-    float vertical;
-    Vector3 moveDirection = Vector3.zero;
+    [Header("Model")]
+    [SerializeField] private GameObject model;
 
     private CharacterController controller;
-    private Rigidbody rb;
-    private void Awake()
+
+    private void Start()
     {
-        rb = GetComponent<Rigidbody>();
-        rb.freezeRotation = true;
+        controller = GetComponent<CharacterController>();
     }
+
     private void Update()
-    {   
+    {
         PlayerInput();
-        SpeedControl();
-    }
-
-    private void FixedUpdate()
-    {
         MovePlayer();
+        ApplyGravity();
+        RotateModel();
     }
-    private void MovePlayer() 
-    {
-        rb.AddForce(moveDirection.normalized * movementSpeed, ForceMode.Force);
-    }
-
-    private void Jump()
-    {
-        //reset y velocity
-        rb.velocity = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-
-        rb.AddForce(transform.up * jumpForce, ForceMode.Impulse);
-    }
-
-    private void Dashing()
+    private void MovePlayer()
     {
         if (isDashing)
         {
-            rb.AddForce(dashDirection * dashSpeed * Time.deltaTime);
+            controller.Move(transform.forward * dashSpeed * Time.deltaTime);
+        }
+        else
+        {
+            movement.Normalize();
+            movement *= movementSpeed * Time.deltaTime;
+            controller.Move(movement);
         }
     }
 
-    private void SpeedControl()
+    private void ApplyGravity()
     {
-        Vector3 flatVel = new Vector3(rb.velocity.x, 0f, rb.velocity.z);
-        //limit of velocity  if needed
-        if (flatVel.magnitude > movementSpeed)
+        if (isGrounded && velocity.y < 0)
         {
-            Vector3 limitedVel = flatVel.normalized * movementSpeed;
-            rb.velocity = new Vector3(limitedVel.x, rb.velocity.y, limitedVel.z);
+            velocity.y = -2f;
         }
+
+        velocity.y += gravity * Time.deltaTime;
+        controller.Move(velocity * Time.deltaTime);
     }
+
     private void PlayerInput()
     {
-        horizontal = Input.GetAxis("Horizontal");
-        vertical = Input.GetAxis("Vertical");
-        moveDirection = new Vector3(horizontal, 0f, 0f);
+        movement = new Vector3(Input.GetAxis("Horizontal"), 0f, Input.GetAxis("Vertical"));
+        movement = transform.TransformDirection(movement);
+        movement.y = 0f;
 
-        if (Input.GetButtonDown("Jump"))
+
+        if (isGrounded)
         {
-            Jump();
+            jumpCount = 0;
+            isJumping = false;
+            canJump = true;
         }
+        else if (!isGrounded && jumpCount >= maxJumpCount)
+        {
+            
+        }
+
+        if (canJump && Input.GetButtonDown("Jump"))
+        {
+            canJump = false;
+            ++jumpCount;
+            StartCoroutine(JumpCoroutine());
+        }
+
         if (Input.GetButtonDown("Fire3"))
         {
             if (!isDashing)
             {
-                // Определяем направление рывка на основе направления взгляда персонажа
-                dashDirection = moveDirection;
-
-                // Запускаем корутину для выполнения рывка
                 StartCoroutine(DashCoroutine());
             }
         }
+        isGrounded = Physics.CheckSphere(transform.position - new Vector3(0, 0.9f, 0f), groundDistance, groundMask);
     }
+
+    private void RotateModel()
+    {
+        model.transform.rotation = Quaternion.LookRotation(movement);
+    }
+
+    private IEnumerator JumpCoroutine()
+    {
+        velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
+        isJumping = true;
+
+        yield return new WaitForSeconds(jumpCooldown);
+
+        //canJump = true;
+    }
+
     private IEnumerator DashCoroutine()
     {
         isDashing = true;
 
-        // Вычисляем конечную точку рывка
-        Vector3 targetPosition = transform.position + dashDirection * dashDistance;
+        Vector3 startPosition = transform.position;
+        Vector3 targetPosition = startPosition + movement * dashDistance;
+        float startTime = Time.time;
+        float journeyLength = Vector3.Distance(startPosition, targetPosition);
 
-        while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
+        while (Time.time < startTime + journeyLength / dashSpeed)
         {
-            // Применяем перемещение в направлении рывка с определенной скоростью
-            Dashing();
-
+            velocity.y = 0; //Turn off gravity while dashing
+            float distanceCovered = (Time.time - startTime) * dashSpeed;
+            float journeyProgress = distanceCovered / journeyLength;
+            Vector3 newPosition = Vector3.Lerp(startPosition, targetPosition, journeyProgress);
+            controller.Move(newPosition - transform.position);
             yield return null;
         }
+
         isDashing = false;
     }
 }
