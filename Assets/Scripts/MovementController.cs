@@ -12,21 +12,28 @@ public class MovementController : MonoBehaviour
     private Vector3 movement;
 
     [Header("Jump")]
+    public int maxJumpCount = 2;
+    private int jumpCount = 0;
+
     public float jumpForce = 5f;
     public float jumpCooldown = 0.5f;
-    public int maxJumpCount = 1;
-    private int jumpCount = 0;
+
     private bool isJumping = false;
     private bool canJump = true;
 
     [Header("Dash")]
+    public int maxDashCount = 2;
+    private int dashCount = 0;
+    public float dashCooldown = 0.8f;
+
     public float dashDistance = 5f;
     public float dashSpeed = 50f;
+
     private bool isDashing = false;
 
     [Header("Physics")]
-    public float gravity = -9.81f;
-    public float groundDistance = 0.1f;
+    private float gravity = -9.81f;
+    private float groundDistance = 0.1f;
     public LayerMask groundMask;
     private bool isGrounded = false;
     private Vector3 velocity;
@@ -86,10 +93,6 @@ public class MovementController : MonoBehaviour
             isJumping = false;
             canJump = true;
         }
-        else if (!isGrounded && jumpCount >= maxJumpCount)
-        {
-            
-        }
 
         if (canJump && Input.GetButtonDown("Jump"))
         {
@@ -100,9 +103,11 @@ public class MovementController : MonoBehaviour
 
         if (Input.GetButtonDown("Fire3"))
         {
-            if (!isDashing)
+            if (!isDashing && dashCount <= maxDashCount)
             {
+                dashCount++;
                 StartCoroutine(DashCoroutine());
+                StartCoroutine(ResetDashCount());
             }
         }
         isGrounded = Physics.CheckSphere(transform.position - new Vector3(0, 1f, 0f), groundDistance, groundMask);
@@ -143,5 +148,12 @@ public class MovementController : MonoBehaviour
         }
 
         isDashing = false;
+    }
+
+    private IEnumerator ResetDashCount()
+    {  
+        yield return new WaitUntil(() => isGrounded);
+        yield return new WaitForSeconds(dashCooldown);
+        dashCount--;
     }
 }
