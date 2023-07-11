@@ -15,7 +15,7 @@ public class MovementController : MonoBehaviour
     public int maxJumpCount = 2;
     private int jumpCount = 0;
 
-    public float jumpForce = 5f;
+    public float jumpForce = 4f;
     public float jumpCooldown = 0.5f;
 
     private bool isJumping = false;
