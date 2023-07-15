@@ -511,6 +511,7 @@ GameObject:
   - component: {fileID: 710679875}
   - component: {fileID: 710679874}
   - component: {fileID: 710679873}
+  - component: {fileID: 710679878}
   - component: {fileID: 710679876}
   - component: {fileID: 710679870}
   - component: {fileID: 710679877}
@@ -643,12 +644,35 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aa2f1f74a46c79a4183f9a04e4e9d0a4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  damage: 50
+  lightAttackDamage: 25
+  heavyAttackDamage: 50
   attackPoint: {fileID: 1071897694}
   attackRange: 1
   enemyLayer:
     serializedVersion: 2
     m_Bits: 128
+  health: 100
+--- !u!95 &710679878
+Animator:
+  serializedVersion: 5
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 710679869}
+  m_Enabled: 1
+  m_Avatar: {fileID: 0}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 0
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 0
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &713423182
 GameObject:
   m_ObjectHideFlags: 0
@@ -664,7 +688,7 @@ GameObject:
   - component: {fileID: 713423184}
   - component: {fileID: 713423183}
   m_Layer: 7
-  m_Name: Cylinder
+  m_Name: Enemy1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -713,6 +737,7 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 64
   health: 50
+  damage: 20
   walkPoint: {x: 5, y: 0, z: 5}
   walkPointRange: 5
   timeBetweenAttacks: 0.5

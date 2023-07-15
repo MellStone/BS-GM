@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Build;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -12,6 +13,7 @@ public class EnemyBehavior : MonoBehaviour
     public LayerMask whatIsGround, whatIsPlayer;
 
     public float health;
+    public int damage;
 
     //Patroling
     public Vector3 walkPoint;
@@ -29,7 +31,7 @@ public class EnemyBehavior : MonoBehaviour
 
     private void Awake()
     {
-        
+
         agent = GetComponent<NavMeshAgent>();
     }
 
@@ -41,7 +43,7 @@ public class EnemyBehavior : MonoBehaviour
 
         if (!playerInSightRange && !playerInAttackRange) Patroling();
         if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-        if (playerInAttackRange && playerInSightRange) AttackPlayer();
+        if (playerInAttackRange && playerInSightRange) LightAttack();
     }
 
     private void Patroling()
@@ -115,5 +117,18 @@ public class EnemyBehavior : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, attackRange);
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, sightRange);
+    }
+    private void LightAttack()
+    {
+        agent.SetDestination(transform.position);
+
+        transform.LookAt(player);
+
+        Collider[] hitEnemies = Physics.OverlapSphere(transform.position, attackRange, whatIsPlayer);
+
+        foreach (Collider player in hitEnemies)
+        {
+            player.GetComponent<PlayerCombat>().TakeDamage(damage);
+        }
     }
 }
