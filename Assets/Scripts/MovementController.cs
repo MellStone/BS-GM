@@ -97,16 +97,17 @@ public class MovementController : MonoBehaviour
         if (canJump && Input.GetButtonDown("Jump"))
         {
             canJump = false;
-            ++jumpCount;
-            StartCoroutine(JumpCoroutine());
+            jumpCount++;
+            StartCoroutine(DashCoroutine(true));
+            StartCoroutine(ResetDashCount());
         }
 
         if (Input.GetButtonDown("Fire3"))
         {
-            if (!isDashing && dashCount <= maxDashCount)
+            if (!isDashing && dashCount < maxDashCount)
             {
                 dashCount++;
-                StartCoroutine(DashCoroutine());
+                StartCoroutine(DashCoroutine(false));
                 StartCoroutine(ResetDashCount());
             }
         }
@@ -115,25 +116,24 @@ public class MovementController : MonoBehaviour
 
     private void RotateModel()
     {
+        //Rotate model object
         model.transform.rotation = Quaternion.LookRotation(movement);
     }
 
-    private IEnumerator JumpCoroutine()
-    {
-        velocity.y = Mathf.Sqrt(jumpForce * -2f * gravity);
-        isJumping = true;
 
-        yield return new WaitForSeconds(jumpCooldown);
-
-        //canJump = true;
-    }
-
-    private IEnumerator DashCoroutine()
+    private IEnumerator DashCoroutine(bool jumpMode)
     {
         isDashing = true;
 
         Vector3 startPosition = transform.position;
-        Vector3 targetPosition = startPosition + movement * dashDistance;
+        Vector3 targetPosition;
+        if (jumpMode)
+        {
+            targetPosition = startPosition + Vector3.up * dashDistance;
+        }
+        else
+            targetPosition = startPosition + movement * dashDistance;
+
         float startTime = Time.time;
         float journeyLength = Vector3.Distance(startPosition, targetPosition);
 
@@ -151,9 +151,11 @@ public class MovementController : MonoBehaviour
     }
 
     private IEnumerator ResetDashCount()
-    {  
+    {
+        //When player hit ground reset all movement cooldown - jump and dash
         yield return new WaitUntil(() => isGrounded);
         yield return new WaitForSeconds(dashCooldown);
-        dashCount--;
+        if (dashCount > 0)
+            dashCount--;
     }
 }

@@ -21,6 +21,7 @@ public class EnemyBehavior : MonoBehaviour
     public float walkPointRange;
 
     //Attacking
+    public Transform attackPoint;
     public float timeBetweenAttacks;
     bool alreadyAttacked;
     public GameObject projectile;
@@ -43,7 +44,7 @@ public class EnemyBehavior : MonoBehaviour
 
         if (!playerInSightRange && !playerInAttackRange) Patroling();
         if (playerInSightRange && !playerInAttackRange) ChasePlayer();
-        if (playerInAttackRange && playerInSightRange) LightAttack();
+        if (playerInAttackRange && playerInSightRange) MeleeAttack();
     }
 
     private void Patroling()
@@ -76,7 +77,7 @@ public class EnemyBehavior : MonoBehaviour
         agent.SetDestination(player.position);
     }
 
-    private void AttackPlayer()
+    private void RangeAttack()
     {
         //Make sure enemy doesn't move
         agent.SetDestination(transform.position);
@@ -118,13 +119,13 @@ public class EnemyBehavior : MonoBehaviour
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, sightRange);
     }
-    private void LightAttack()
+    private void MeleeAttack()
     {
         agent.SetDestination(transform.position);
 
         transform.LookAt(player);
 
-        Collider[] hitEnemies = Physics.OverlapSphere(transform.position, attackRange, whatIsPlayer);
+        Collider[] hitEnemies = Physics.OverlapSphere(attackPoint.position, attackRange, whatIsPlayer);
 
         foreach (Collider player in hitEnemies)
         {

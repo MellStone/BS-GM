@@ -14,6 +14,7 @@ public class PlayerCombat : MonoBehaviour
     private Animator animator;
 
     public float health;
+    private bool isBlocking = false;
 
     private void Start()
     {
@@ -28,6 +29,14 @@ public class PlayerCombat : MonoBehaviour
         if (Input.GetButtonDown("Fire3") && !isAttacking)
         {
             HeavyAttack();
+        }
+        if (Input.GetButton("Fire2"))
+        {
+            isBlocking = true;
+        }
+        else
+        {
+            isBlocking = false;
         }
     }
     private void LightAttack()
@@ -74,14 +83,18 @@ public class PlayerCombat : MonoBehaviour
     }
 
 
-
+    private void BlockDamage()
+    {
+        isBlocking = !isBlocking;
+    }
 
     ///
     /// 
     ///
     public void TakeDamage(int damage)
     {
-        health -= damage;
+        if(!isBlocking)
+            health -= damage;
 
         if (health <= 0) Invoke(nameof(DestroyEnemy), 0.5f);
     }
